@@ -1,0 +1,30 @@
+#!/bin/bash
+#Minecraft control script for use wiht minecraft.service
+FIFO_NAME="minecraftctl"
+#initial setup
+exec {stdout}>&1
+exec {shmlog}>/dev/shm/"minecraft@$1".log
+exec {stderr}>&2
+exec {minecraft_comm}<>"${FIFO_NAME}"
+
+# prepare cleanup
+function cleanup {
+  echo "Cleaning up" >&${stdout}
+  exec {minecraft_comm}>&-
+  exec {stdout}>&-
+  exec {stderr}>&-
+}
+(
+#disable SIGTERM for the java process:
+trap "" SIGTERM
+#start the server process
+java -Xmx1024M -Xms1024M -Xincgc -jar server.jar <&${minecraft_comm} >&${shmlog} 2>&${shmlog} &
+
+# Now get the PID of java, issue stop, wait for it synchronously within the signal handler. and clean up afterwards -- 
+SVRPID=$!
+trap "echo stop >${FIFO_NAME}; wait $SRVPID" SIGTERM
+#wait and clean up afterwards
+wait $SRVPID >&${stdout}
+cleanup >&${stdout}
+) & >&${stdout}
+
