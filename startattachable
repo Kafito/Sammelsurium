@@ -1,37 +1,42 @@
 #!/bin/bash
 # startattachable, a script to start a process as a daemon and provide the opportunity to attach to the console of this program
 # open issues / todos
+# - Only create pipe for start commands
+#     Check for pipe presence in connect command. Create pipe only on start command.
 # - Set access rights of pipe to rw / w / - 
 # - Make sure tail commands of the console gets killed on interrupt.
-# - Allow for custom configurations for a daemon specific graceful quite command.
+# - Allow for custom configurations for a daemon specific graceful quit command.
+#(-)Create Kill command
+#(-)Create Cleanup Command
+
 main() {
-WHAT="$1"; shift
-TOKEN="$1"; shift
-
-if [[ -z "$TOKEN" ||  -z "$WHAT" ]]; then
-  echo "usage"
-  exit
-fi
-
-FIFO_NAME="/dev/shm/$TOKEN.ctl"
-LOG_FILE="/dev/shm/$TOKEN.log"
-
-# setup fifo
-mkfifo "${FIFO_NAME}" #TODO: set access rights to current user write only
-
-#initial setup file handles
-exec {daemonlogfile}>"$LOG_FILE"
-exec {daemon_comm}<>"${FIFO_NAME}"
-
-# evaluate command
-case "$WHAT" in 
-  start)
-    start $@
-  ;;
-  connect)
-    connect
-  ;;
-esac
+  WHAT="$1"; shift
+  TOKEN="$1"; shift
+  
+  if [[ -z "$TOKEN" ||  -z "$WHAT" ]]; then
+    echo "usage"
+    exit
+  fi
+  
+  FIFO_NAME="/dev/shm/$TOKEN.ctl"
+  LOG_FILE="/dev/shm/$TOKEN.log"
+  
+  # setup fifo
+  mkfifo "${FIFO_NAME}" #TODO: set access rights to current user write only
+  
+  #initial setup file handles
+  exec {daemonlogfile}>"$LOG_FILE"
+  exec {daemon_comm}<>"${FIFO_NAME}"
+  
+  # evaluate command
+  case "$WHAT" in 
+    start)
+      start $@
+    ;;
+    connect)
+      connect
+    ;;
+  esac
 }
 
 # prepare cleanup
@@ -41,37 +46,37 @@ function cleanup {
 }
 
 function start {
-(
-echo $FIFO_NAME $LOG_FILE
-COMMAND=$1; shift
-if [ -z "$COMMAND" ]; then
-  echo "usage"
-fi
-#disable SIGTERM and SIGINT for the daemon process:
-trap "" SIGTERM # avoid kills by systemctl
-trap "" SIGINT # avoid kills when the interactive console is aborted
-
-#start the daemon process
-$COMMAND $@ <&${daemon_comm} >&${daemonlogfile} 2>&${daemonlogfile} &
-
-# Now get the PID of daemon, issue stop, wait for it synchronously within the signal handler. and clean up afterwards -- 
-PID=$!
-trap "echo stop >${FIFO_NAME}; wait $PID" SIGTERM #TODO: make stop command configurable
-#wait and clean up afterwards
-trap "" SIGKILL
-wait $PID 
-cleanup
-) & 
+  (
+    echo $FIFO_NAME $LOG_FILE
+    COMMAND=$1; shift
+    if [ -z "$COMMAND" ]; then
+      echo "usage"
+    fi
+    #disable SIGTERM and SIGINT for the daemon process:
+    trap "" SIGTERM # avoid kills by systemctl
+    trap "" SIGINT # avoid kills when the interactive console is aborted
+    
+    #start the daemon process
+    $COMMAND $@ <&${daemon_comm} >&${daemonlogfile} 2>&${daemonlogfile} &
+    
+    # Now get the PID of daemon, issue stop, wait for it synchronously within the signal handler. and clean up afterwards -- 
+    PID=$!
+    trap "echo stop >${FIFO_NAME}; wait $PID" SIGTERM #TODO: make stop command configurable
+    #wait and clean up afterwards
+    trap "" SIGKILL
+    wait $PID 
+    cleanup
+  ) & 
 }
 
 function connect {
-(
-tail -f "$LOG_FILE" &
-while IFS= read -r -n 1 char; do
-  if [[ ! -p "$FIFO_NAME" ]]; then echo "abort"; break; fi
-  echo -n "$char" >"${FIFO_NAME}"
-done
-)
+  (
+    tail -f "$LOG_FILE" &
+    while IFS= read -r -n 1 char; do
+      if [[ ! -p "$FIFO_NAME" ]]; then echo "abort"; break; fi
+      echo -n "$char" >"${FIFO_NAME}"
+    done
+  )
 }
 
 main $@
