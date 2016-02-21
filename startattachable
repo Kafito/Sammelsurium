@@ -1,6 +1,9 @@
 #!/bin/bash
 # startattachable, a script to start a process as a daemon and provide the opportunity to attach to the console of this program
-
+# open issues / todos
+# - Set access rights of pipe to rw / w / - 
+# - Make sure tail commands of the console gets killed on interrupt.
+# - Allow for custom configurations for a daemon specific graceful quite command.
 main() {
 WHAT="$1"; shift
 TOKEN="$1"; shift
@@ -55,6 +58,7 @@ $COMMAND $@ <&${daemon_comm} >&${daemonlogfile} 2>&${daemonlogfile} &
 PID=$!
 trap "echo stop >${FIFO_NAME}; wait $PID" SIGTERM #TODO: make stop command configurable
 #wait and clean up afterwards
+trap "" SIGKILL
 wait $PID 
 cleanup
 ) & 
@@ -65,7 +69,7 @@ function connect {
 tail -f "$LOG_FILE" &
 while IFS= read -r -n 1 char; do
   if [[ ! -p "$FIFO_NAME" ]]; then echo "abort"; break; fi
-  echo -n "+$char" >"${FIFO_NAME}"
+  echo -n "$char" >"${FIFO_NAME}"
 done
 )
 }
