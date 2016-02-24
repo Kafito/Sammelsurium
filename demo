@@ -16,7 +16,7 @@ echo "You can attach to it by using the following command:"
 echo $CONNECTCMD
 echo "Press any key to do that now! You can quit this daemon with 'q'"
 echo "or disconnect the console with <ctrl-c>"
-read -n 1
+read -s -n 1
 eval $CONNECTCMD
 echo
 
