@@ -1,0 +1,23 @@
+#!/bin/bash
+RELLOC="./"
+SCRIPTNAME="startattachable"
+EXECPATH="$RELLOC$SCRIPTNAME" 
+STARTCMD="$EXECPATH start test ./testp \$TOK"
+CONNECTCMD="$EXECPATH connect test"
+
+echo "First, the process is launched by issueing the following command:"
+echo $STARTCMD
+echo "You may enter a token (TOK) that the daemon process will prepend any characters it reads"
+read -r TOK
+eval $STARTCMD
+
+echo "Process has been launched. It is running in the background now" 
+echo "You can attach to it by using the following command:" 
+echo $CONNECTCMD
+echo "Press any key to do that now! You can quit this daemon with 'q'"
+echo "or disconnect the console with <ctrl-c>"
+read -n 1
+eval $CONNECTCMD
+echo
+
+
