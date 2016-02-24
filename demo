@@ -1,6 +1,6 @@
 #!/bin/bash
 RELLOC="./"
-SCRIPTNAME="startattachable"
+SCRIPTNAME="lacl"
 EXECPATH="$RELLOC$SCRIPTNAME" 
 STARTCMD="$EXECPATH start test ./testp \$TOK"
 CONNECTCMD="$EXECPATH connect test"
