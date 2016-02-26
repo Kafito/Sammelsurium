@@ -5,7 +5,6 @@
 # - Only create pipe for start commands
 #     Check for pipe presence in connect command. Create pipe only on start command.
 # - Set access rights of pipe to rw / w / - 
-# - Make sure tail commands of the console gets killed on interrupt.
 # - Allow for custom configurations for a daemon specific graceful quit command.
 #(-)Create Kill command
 #(-)Create Cleanup Command
