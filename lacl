@@ -41,12 +41,12 @@ main() {
 }
 
 # prepare cleanup
-function cleanup {
+cleanup() {
   exec {daemon_comm}>&-
   rm  -v "$LOG_FILE" "$FIFO_NAME"
 }
 
-function start {
+start() {
   (
     echo $FIFO_NAME $LOG_FILE
     COMMAND=$1; shift
@@ -70,14 +70,14 @@ function start {
   ) & 
 }
 
-function connect {
-  (
-    tail -f "$LOG_FILE" &
-    while IFS= read -r -s -d "$(echo -ne '\0004')" -n 1 char; do
-      if [[ ! -p "$FIFO_NAME" ]]; then echo "abort"; break; fi
-      echo -ne "$char" >"${FIFO_NAME}"
-    done
-  )
+connect() {
+  tail -f "$LOG_FILE" &
+  local TAILPID=$!
+  while IFS= read -r -s -d "$(echo -ne '\0004')" -n 1 char; do
+    if [[ ! -p "$FIFO_NAME" ]]; then echo "abort"; break; fi
+    echo -ne "$char" >"${FIFO_NAME}"
+  done
+  kill $TAILPID
 }
 
 main $@
