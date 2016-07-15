@@ -8,12 +8,14 @@
 #(-)Create Kill command
 #(-)Create Cleanup Command
 
+USAGE="Usage: lacl start \$TOKEN command [arg1 arg2 ...] | lacl connect \$TOKEN"
+
 main() {
   WHAT="$1"; shift
   TOKEN="$1"; shift
   
   if [[ -z "$TOKEN" ||  -z "$WHAT" ]]; then
-    echo "usage"
+    echo "$USAGE"
     exit
   fi
   
@@ -46,22 +48,23 @@ cleanup() {
 
 start() {
   (
-    echo $FIFO_NAME $LOG_FILE
+    # echo $FIFO_NAME $LOG_FILE
     COMMAND=$1; shift
     if [ -z "$COMMAND" ]; then
-      echo "usage"
+      echo "$USAGE"
     fi
-    #disable SIGTERM and SIGINT for the daemon process:
+  
+    # disable SIGTERM and SIGINT for the daemon process:
     trap "" SIGTERM # avoid kills by systemctl
     trap "" SIGINT # avoid kills when the interactive console is aborted
     
-    #start the daemon process
+    # start the daemon process
     $COMMAND $@ <&${daemon_comm} >&${daemonlogfile} 2>&${daemonlogfile} &
     
-    # Now get the PID of daemon, issue stop, wait for it synchronously within the signal handler. and clean up afterwards -- 
+    # Now get the PID of daemon, issue stop, wait for it synchronously within the signal handler and clean up afterwards -- 
     PID=$!
     trap "echo stop >${FIFO_NAME}; wait $PID" SIGTERM #TODO: make stop command configurable
-    #wait and clean up afterwards
+    # wait and clean up afterwards
     trap "" SIGKILL
     wait $PID 
     cleanup
