@@ -93,11 +93,12 @@ connect() {
 
   tail -f "$LOG_FILE" &
   local TAILPID=$!
+
+  trap "kill $TAILPID" EXIT 
   while IFS= read -r -s -d "$(echo -ne '\0004')" -n 1 char; do
-    if [[ ! -p "$FIFO_NAME" ]]; then echo "abort"; break; fi
+    if [[ ! -p "$FIFO_NAME" ]]; then echo "connection lost"; break; fi
     echo -ne "$char" >"${FIFO_NAME}"
   done
-  kill $TAILPID
 }
 
 main $@
