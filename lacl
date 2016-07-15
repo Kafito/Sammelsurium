@@ -4,7 +4,6 @@
 # open issues / todos
 # - Only create pipe for start commands
 #     Check for pipe presence in connect command. Create pipe only on start command.
-# - Set access rights of pipe to rw / w / - 
 # - Allow for custom configurations for a daemon specific graceful quit command.
 #(-)Create Kill command
 #(-)Create Cleanup Command
@@ -22,7 +21,7 @@ main() {
   LOG_FILE="/dev/shm/$TOKEN.log"
   
   # setup fifo
-  mkfifo "${FIFO_NAME}" #TODO: set access rights to current user write only
+  mkfifo --mode=0620 "${FIFO_NAME}"
   
   #initial setup file handles
   exec {daemonlogfile}>"$LOG_FILE"
