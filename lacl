@@ -2,8 +2,6 @@
 # lacl - launch and control later
 # a script to start a process as a daemon and provide the opportunity to attach to the console of this program
 # open issues / todos
-# - Only create pipe for start commands
-#     Check for pipe presence in connect command. Create pipe only on start command.
 # - Allow for custom configurations for a daemon specific graceful quit command.
 #(-)Create Kill command
 #(-)Create Cleanup Command
@@ -22,13 +20,6 @@ main() {
   FIFO_NAME="/dev/shm/$TOKEN.ctl"
   LOG_FILE="/dev/shm/$TOKEN.log"
   
-  # setup fifo
-  mkfifo --mode=0620 "${FIFO_NAME}"
-  
-  #initial setup file handles
-  exec {daemonlogfile}>"$LOG_FILE"
-  exec {daemon_comm}<>"${FIFO_NAME}"
-  
   # evaluate command
   case "$WHAT" in 
     start)
@@ -40,6 +31,12 @@ main() {
   esac
 }
 
+# setup handlers
+setup_files() {
+  exec {daemonlogfile}>"$LOG_FILE"
+  exec {daemon_comm}<>"${FIFO_NAME}"
+}
+
 # prepare cleanup
 cleanup() {
   exec {daemon_comm}>&-
@@ -47,6 +44,17 @@ cleanup() {
 }
 
 start() {
+
+  if [ -e "$FIFO_NAME" ]; then
+    echo "Error: Token already in use (or not cleaned up correctly)"
+    echo "$USAGE"
+    exit -1
+  fi
+
+  # setup fifo
+  mkfifo --mode=0620 "${FIFO_NAME}"
+  setup_files
+
   (
     # echo $FIFO_NAME $LOG_FILE
     COMMAND=$1; shift
@@ -72,6 +80,17 @@ start() {
 }
 
 connect() {
+  # assert fifo exists
+
+  if ! [ -p "$FIFO_NAME" ]; then
+    echo "Error: Pipe not found!"
+    echo "You need to start a command for the given token first."
+    echo "$USAGE"
+    exit -1
+  fi
+
+  # setup_files -- should not be used.
+
   tail -f "$LOG_FILE" &
   local TAILPID=$!
   while IFS= read -r -s -d "$(echo -ne '\0004')" -n 1 char; do
