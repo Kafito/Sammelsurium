@@ -3,10 +3,9 @@
 # a script to start a process as a daemon and provide the opportunity to attach to the console of this program
 # open issues / todos
 # - Allow for custom configurations for a daemon specific graceful quit command.
-#(-)Create Kill command
 #(-)Create Cleanup Command
 
-USAGE="Usage: lacl start \$TOKEN command [arg1 arg2 ...] | lacl connect \$TOKEN"
+USAGE="Usage: lacl start \$TOKEN command [arg1 arg2 ...] | lacl connect \$TOKEN | lacl [stop|kill] \$TOKEN"
 
 main() {
   WHAT="$1"; shift
@@ -19,19 +18,29 @@ main() {
   
   FIFO_NAME="/dev/shm/$TOKEN.ctl"
   LOG_FILE="/dev/shm/$TOKEN.log"
+  PID_FILE="/dev/shm/$TOKEN.pid"
   
   # evaluate command
   case "$WHAT" in 
     start)
       start $@
-    ;;
+      ;;
     connect)
       connect
-    ;;
+      ;;
+    stop)
+      stop
+      ;;
+    kill)
+      stop "--kill" 
+      ;;
+    *)
+      echo "$USAGE"  
+      ;;
   esac
 }
 
-# setup handlers
+# setup handles
 setup_files() {
   exec {daemonlogfile}>"$LOG_FILE"
   exec {daemon_comm}<>"${FIFO_NAME}"
@@ -40,7 +49,7 @@ setup_files() {
 # prepare cleanup
 cleanup() {
   exec {daemon_comm}>&-
-  rm  -v "$LOG_FILE" "$FIFO_NAME"
+  rm  -v "$LOG_FILE" "$FIFO_NAME" "$PID_FILE"
 }
 
 start() {
@@ -71,6 +80,7 @@ start() {
     
     # Now get the PID of daemon, issue stop, wait for it synchronously within the signal handler and clean up afterwards -- 
     PID=$!
+    echo "$PID " >>${PID_FILE}
     trap "echo stop >${FIFO_NAME}; wait $PID" SIGTERM #TODO: make stop command configurable
 
     trap "" SIGKILL # can't ignore SIGKILL, but this prevents an unecessary message on the console "lacl: line XX: $PID Killed [...]"
@@ -80,6 +90,7 @@ start() {
 
     wait $PID 
   ) & 
+  echo -n "$! ">${PID_FILE}
 }
 
 connect() {
@@ -102,6 +113,22 @@ connect() {
     if [[ ! -p "$FIFO_NAME" ]]; then echo "connection lost"; break; fi
     echo -ne "$char" >"${FIFO_NAME}"
   done
+}
+
+stop() {
+  if ! [ -f "$PID_FILE" ]; then
+    "Attention: Pid file is not present, cannot stop any processes for \"$TOKEN\"." 
+    exit 0;
+  fi
+
+  if [ "$1" == "--kill" ]; then
+    SIGNAL=SIGKILL
+    trap "rm  -v $LOG_FILE $FIFO_NAME $PID_FILE" EXIT # not via cleanup due to missing setup of named redirect
+  else
+    SIGNAL=SIGTERM
+  fi
+
+  kill -s ${SIGNAL} $(<"$PID_FILE")
 }
 
 main $@
