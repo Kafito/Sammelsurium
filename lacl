@@ -72,10 +72,13 @@ start() {
     # Now get the PID of daemon, issue stop, wait for it synchronously within the signal handler and clean up afterwards -- 
     PID=$!
     trap "echo stop >${FIFO_NAME}; wait $PID" SIGTERM #TODO: make stop command configurable
+
+    trap "" SIGKILL # can't ignore SIGKILL, but this prevents an unecessary message on the console "lacl: line XX: $PID Killed [...]"
+
     # wait and clean up afterwards
-    trap "" SIGKILL
+    trap cleanup EXIT
+
     wait $PID 
-    cleanup
   ) & 
 }
 
