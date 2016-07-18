@@ -143,22 +143,8 @@ stop() {
 
 main $@
 
-#function connect {
-#tail -f "$LOG_FILE" &
-#start the interactive shell emulation
-#TODO: issue tail-f background, if possible, to create some kind of a interative shell
-#while read line; do
-#  if [ -p "${FIFO_NAME}" ]; then
-#    echo "cmd: $line"
-#  else
-#    echo "named pipe does not exist anymore, aborting server frontend" >&2
-#    break
-#  fi
-#done >"${FIFO_NAME}"
-#}
-
-
-#kafi@v22014082319219779 startattachable]$ while true; do IFS= read -r -n 1 line; echo "$line"; done <&${testfifo} &
+# ---------------------------------- development snippets ---------------------------------------------------
+# $while true; do IFS= read -r -n 1 line; echo "$line"; done <&${testfifo} &
 #[1] 1692
-#[kafi@v22014082319219779 startattachable]$ while IFS= read -r -n1 char; do echo -n "$char" > test; done
+# $while IFS= read -r -n1 char; do echo -n "$char" > test; done
 
