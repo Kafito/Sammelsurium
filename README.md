@@ -25,8 +25,11 @@ To me this always seemed to be unintuitive and an overkill, so -- out of curiosi
 ```
 
 For all cases, `token` is a user provided identifier for the background task, necessary to connect to and stop the background service.
+
 `lacl start` will start a background subshell that executes `command` with the given arguments `arg1 arg2 ...`. `--stopsequence seq` defines a character sequence that will be send to the input stream of the process when the process group receives `SIGTERM`. This is quite useful to gracefully shut down a process that reacts on "quit" or "exit" or similar commands. If set, the process `command` is set to ignore `SIGTERM`.
+
 You can connect to this process by starting the provided commandline frontend via `lacl connect token`.
+
 `lacl stop` or `lacl kill` will end the given process with `SIGTERM` or `SIGKILL`, respectively.
 
 ## Files
