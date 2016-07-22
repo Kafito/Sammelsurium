@@ -43,7 +43,7 @@ When a process with a given `token` is started, `lacl` creates three files:
 * kill
 
 ## Alternatives
-- tmux / screen
+- tmux / screen or another pty implementation.
 - reset/modify file descriptors of the process by attaching gdb and using its facilities.
 - Use tools such as [screenify](http://sooda.dy.fi/foo/screenify), [retty](http://manpages.ubuntu.com/manpages/precise/man1/retty.1.html) or [reptyr](https://github.com/nelhage/reptyr) to modify or attach to the controlling terminals of the process.
 
