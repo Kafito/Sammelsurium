@@ -1,9 +1,29 @@
 #/usr/bin/env bash
-# Documentation:
+# realpicocms - serving "static" as in "aesthatic"
+# https://github.com/Kafito/realpicocms
+#
+# A script that avoids the "dynamically serving static files" approach
+# of Pico (http://github.com/picocms/Pico.git).
+# This script will start Pico in a temporary web server, extract all files
+# of the homepage and store them as .hmtl files in a local directory that can
+# be served statically.
+# It can be called in the context of inotify to rebuild the homepage, when a
+# new file is added to the content directory of Pico.
+#
+# Limitations:
+# * Currently, assets and themes are not handled. These need to be copied manually.
+# * The static files are stored as ".html" files, but links within Pico are provided
+#   without a suffix. This can be changed by adapting the .twig files of the theme.
+#
+# Disclaimer:
+# Currently users of this file most likely will need to adapt not
+# only the config variables, but the code was well, as it is tuned for the
+# website the author was working on.
 
-PICO=/home/kafi/pico/Pico
+PICO="/home/$USER/Pico"
 PICOPORT=8080
-RUNPICO="php -S 127.0.0.1:$PICOPORT --docroot $PICO"
+RUN_PICO_WITH_SERVER_IN_BACKGROUND="php -S 127.0.0.1:$PICOPORT --docroot $PICO &"
+STATICDIRECTORY="$PICO/staticcontent/"
 
 # build up a list of files to crawl
 filelist=$(find "$PICO/content/" -name "*.md" | 
@@ -17,29 +37,30 @@ directorylist=$(echo "$filelist" |
 		uniq
 )
 
-staticdirectory="$PICO/staticcontent/"
+# I don't want to be responsible for any accidents:
+# rm -rf "$STATICDIRECTORY"
 
 echo "$directorylist" | while read d; do
-		mkdir "$staticdirectory$d"
+		mkdir "$STATICDIRECTORY$d"
 done
 
 # start PICO
 echo "starting pico"
 # make sure pico is stopped when this script ends
-php -S 127.0.0.1:8080 --docroot $PICO &
-PICOPID=$!
-echo "$PICOPID"
-trap "kill $PICOPID" EXIT
+eval "$RUN_PICO_WITH_SERVER_IN_BACKGROUND"
+pico_pid=$!
+trap "kill $pic_pid" EXIT
 
-# make sure the server is fully up and running
+# wait a bit to make sure the server is fully up and running
 sleep 1;
-# fetch all dem files
-echo "$filelist" | while read f; do
-	outfile="$staticdirectory$f.html"
-	curl -fs "http://localhost:$PICOPORT/index.php?$f" |
-		sed 's;http://localhost:8080/;/;g' > "$outfile"
 
-	if [ $! ]; then
+# fetch all files, adapt the theme path
+echo "$filelist" | while read f; do
+	outfile="$STATICDIRECTORY$f.html"
+	curl -fs "http://localhost:$PICOPORT/index.php?$f" |
+		sed 's;http://localhost:8080/;/janontech/;g' > "$outfile"
+	curl_returncode="${PIPESTATUS[0]}"
+	if [ $curl_returncode  == 0 ]; then
 		RESULT='\033[0;32m Success\033[0m'
 	else
 		RESULT='\033[0;31m Failed\033[0m'
@@ -49,7 +70,3 @@ echo "$filelist" | while read f; do
 	echo -e "$RESULT"
 		
 done
-
-
-
-
