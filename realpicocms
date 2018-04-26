@@ -1,0 +1,55 @@
+#/usr/bin/env bash
+# Documentation:
+
+PICO=/home/kafi/pico/Pico
+PICOPORT=8080
+RUNPICO="php -S 127.0.0.1:$PICOPORT --docroot $PICO"
+
+# build up a list of files to crawl
+filelist=$(find "$PICO/content/" -name "*.md" | 
+		sed "s:$PICO/content\(.*\)\.md:\1:g"
+)
+
+# strip file name from file list to retrieve the directory structure
+directorylist=$(echo "$filelist" |
+		sed 's:\(.*\)/.*:\1:' |
+		sort |
+		uniq
+)
+
+staticdirectory="$PICO/staticcontent/"
+
+echo "$directorylist" | while read d; do
+		mkdir "$staticdirectory$d"
+done
+
+# start PICO
+echo "starting pico"
+# make sure pico is stopped when this script ends
+php -S 127.0.0.1:8080 --docroot $PICO &
+PICOPID=$!
+echo "$PICOPID"
+trap "kill $PICOPID" EXIT
+
+# make sure the server is fully up and running
+sleep 1;
+# fetch all dem files
+echo "$filelist" | while read f; do
+	outfile="$staticdirectory$f.html"
+	curl -fs "http://localhost:$PICOPORT/index.php?$f" |
+		sed 's;http://localhost:8080/;/;g' > "$outfile"
+
+	if [ $! ]; then
+		RESULT='\033[0;32m Success\033[0m'
+	else
+		RESULT='\033[0;31m Failed\033[0m'
+	fi;
+
+	echo -n "fetching $f to $outfile .. "
+	echo -e "$RESULT"
+		
+done
+
+
+
+
