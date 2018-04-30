@@ -1,6 +1,6 @@
 #/usr/bin/env bash
-# realpicocms - serving "static" as in "aesthatic"
-# https://github.com/Kafito/realpicocms
+# realstaticpicocms - serving "static" as in "aesthatic"
+# https://github.com/Kafito/RealStaticPicoCMS
 #
 # A script that avoids the "dynamically serving static files" approach
 # of Pico (http://github.com/picocms/Pico.git).
