@@ -1,3 +1,6 @@
+# Taken from ActiveCode recipe 134892 
+# https://github.com/ActiveState/code/tree/master/recipes/Python/134892_getchlike_unbuffered_character_reading_stdboth/
+
 class _Getch:
     """Gets a single character from standard input.  Does not echo to the
 screen."""
