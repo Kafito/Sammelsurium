@@ -3,22 +3,23 @@ import getpass
 import getch
 import fuzzy
 
-import readline
-import time
-
-
 import string
+
+def clearScreen():
+    print(chr(27) + "[2J" + chr(27) + "[H")
 
 if True:
     pw = getpass.getpass()
-
     kp = PyKeePass('/home/kafi/passworddb.kdbx', password=pw)
 
 
 reqstring = ''
-
 currentFavs = ()
+
+clearScreen()
+
 print("Input your fuzz:")
+
 while True:
     char = getch.getch()
     if char == '\x03' or char == '\x04' or char == '\x1a':
@@ -36,10 +37,9 @@ while True:
     
     scores = [e for e in [(fuzzy.fuzzyScore(reqstring, str(entry)), entry) for entry in kp.entries] if e[0] != None]
     sortedScores = sorted(scores, key=lambda e: e[0], reverse=True)
+    clearScreen()
+    print("Input your fuzz:")
     if reqstring : print("SearchString: " + reqstring)
     currentFavs = sortedScores[:3]
     for e in currentFavs:
-            print(e[0], e[1])
-
-    
-
+            print(e[1])
