@@ -70,4 +70,4 @@ When a process with a given `token` is started, `lacl` creates three files:
 
 ## License
 This project is licensed under the MIT License - see the
-[../LICENSE.txt](LICENSE.txt) file for details
+[LICENSE.txt](../LICENSE.txt) file for details
