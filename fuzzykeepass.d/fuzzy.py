@@ -1,9 +1,6 @@
 import re
-######
-#GitHub
-#Gillard.com
 
-#better handled useing levenshtein-distance
+# Fuzzy matching is commonly rather handled useing levenshtein-distance
 # e.g. https://github.com/seatgeek/fuzzywuzzy
 
 def fuzzify(query):
@@ -11,7 +8,7 @@ def fuzzify(query):
     return regex
 
 def fuzzyScore(pattern, reference):
-    result = re.match(fuzzify(pattern), reference, flags=re.IGNORECASE) 
+    result = re.match(fuzzify(pattern), reference, flags=re.IGNORECASE)
     reflen = len(reference)
     lastindex = -1
     score = 0
@@ -31,8 +28,9 @@ def fuzzyScore(pattern, reference):
             lastindex = startindex
     return score
 
-searchstring = ('Germany' , 'germany', 'Ge', 'ermy', 'Blablagerm', 'Gbermany', 'Germn')
-name = 'Germany'
-for search in searchstring:
-    print(search, fuzzyScore(search, name))
+if __name__ == '__main__':
+    searchstrings = ('Germany' , 'germany', 'Ge', 'ermy', 'Blablagerm', 'Gbermany', 'Germn')
+    name = 'Germany'
+    for search in searchstrings:
+        print(search, fuzzyScore(search, name))
 

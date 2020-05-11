@@ -1,8 +1,12 @@
-# taken from https://j11y.io/javascript/fuzzy-scoring-regex-mayhem/
+# Code is a transcript from javascript based on what has been described 
+# by James Padolsey on https://j11y.io/javascript/fuzzy-scoring-regex-mayhem/
+#
+# This code served as a reference or staring point for my experiment.
+# 
+
 
 import re
 import math
-
 
 def createFuzzyScorer(text):
 
@@ -32,9 +36,9 @@ def createFuzzyScorer(text):
 
     return fuzzyScore
 
-
-score = createFuzzyScorer('Germany')
-print(score('ger'))
-print(score('erman'))
-print(score('many'))
-print(score('blablabla'))
+if __name__ == '__main__':
+    score = createFuzzyScorer('Germany')
+    print(score('ger'))
+    print(score('erman'))
+    print(score('many'))
+    print(score('blablabla'))

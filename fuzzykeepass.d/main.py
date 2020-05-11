@@ -1,9 +1,12 @@
+# system modules
 from pykeepass import PyKeePass
+import string
 import getpass
+import sys
+
+# own modules
 import getch
 import fuzzy
-
-import string
 
 def clearScreen():
     print(chr(27) + "[2J" + chr(27) + "[H", end='')
@@ -20,13 +23,20 @@ def grayScale(level):
 
 def highlight():
     print(chr(27) + "[37;1;4m", end='')
-    
-if True:
-    pw = getpass.getpass()
-    kp = PyKeePass('/home/kafi/passworddb.kdbx', password=pw)
+
+
+if len(sys.argv) != 2:
+    print("Usage: main.py pass/to/password/db")
+    sys.exit(-1)
+
+password_db = sys.argv[1]
+pw = getpass.getpass()
+kp = PyKeePass(password_db, password=pw)
+
 
 reqstring = ''
 currentFavs = ()
+
 
 clearScreen()
 

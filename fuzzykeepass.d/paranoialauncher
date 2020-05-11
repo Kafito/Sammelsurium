@@ -1,3 +1,5 @@
 #! /usr/bin/env bash
 
-unshare -n -r python ./main.py
+[ -z "$1" ] && db_path=~/passworddb.kdbx || db_path="$1"
+
+unshare -n -r python ./main.py "$db_path"
