@@ -6,7 +6,7 @@ repositories (yet).
 Launch And Control Later - a pure bash process launcher that allows for
 deferred terminal connections via built-in facilities.
 
-[lacl README](lacl.d/README.md)
+[lacl README](lacl.d)
 
 ## fuzzyKeepass
 An experiment to implement fuzzy matching logic with regular expressions
