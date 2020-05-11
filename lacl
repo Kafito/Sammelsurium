@@ -49,7 +49,15 @@ setup_files() {
 # prepare cleanup
 cleanup() {
   exec {daemon_comm}>&-
-  rm  -v "$LOG_FILE" "$FIFO_NAME" "$PID_FILE"
+  rm "$LOG_FILE" "$FIFO_NAME" "$PID_FILE"
+}
+
+busywait() {
+  for pid in "$@"; do
+    while kill -0 "$pid"; do
+      sleep 0.5
+    done
+  done	       
 }
 
 start() {
@@ -88,6 +96,7 @@ start() {
     # Now get the PID of daemon, issue stop, wait for it synchronously within the signal handler and clean up afterwards -- 
     PID=$!
     echo "$PID " >>${PID_FILE}
+    sync
     if ! [ -z "$STOPSEQUENCE" ]; then
       trap "echo $STOPSEQUENCE >${FIFO_NAME}; wait $PID" TERM
     else
@@ -100,7 +109,7 @@ start() {
 
     wait $PID 
   ) & 
-  echo -n "$! ">${PID_FILE}
+  echo -n " $! ">${PID_FILE}
 }
 
 connect() {
@@ -133,12 +142,14 @@ stop() {
 
   if [ "$1" == "--kill" ]; then
     SIGNAL=SIGKILL
-    trap "rm  -v $LOG_FILE $FIFO_NAME $PID_FILE" EXIT # not via cleanup due to missing setup of named redirect
+    trap "rm $LOG_FILE $FIFO_NAME $PID_FILE" EXIT # not via cleanup due to missing setup of named redirect
   else
     SIGNAL=SIGTERM
   fi
 
   kill -s ${SIGNAL} $(<"$PID_FILE")
+
+  busywait $(<"$PID_FILE")
 }
 
 main $@

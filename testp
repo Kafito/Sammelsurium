@@ -1,8 +1,9 @@
 #!/bin/bash
 while true; do
-  IFS= read -r -n 1 char
+  IFS= read -d "$(echo -ne '\0004')" -n 1 char
   case $char in
-    q) echo; break ;;
-    *) echo -n "$1$char" ;;
+    q) break ;;
+    *) echo -ne "$1$char"  ;;
   esac
+  echo 
 done
