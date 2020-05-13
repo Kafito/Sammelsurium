@@ -1,0 +1,127 @@
+#! /usr/bin/python
+# -*- coding: utf-8 -*-
+#
+# Note: So far, all data seems to be in big-endian format, that's why there is
+# the '>' at the beginning of the unpack description strings.
+#
+# Data format:
+# * 0. [16:4+4+4+4] bytes ('firstLine')
+#      * [4] a start of data - always 0x100 so far. Could also be a fixed tag
+#      * [4] b start of descriptor section - always 0x100 so far.
+#      * [4] c seek offset of descriptor section - b - 0x100 / purpose unclear
+#      * [4] d some low integer, that seems to be dependent on the file size. e.g. CRC
+#
+# DescriptorSection format:
+# * 1. [16] (repeat 'firstLine' of file (see 0.))
+# * 2. [12:2+4+6] Unknown
+#      * [2] ???? (0x005f | 0000)
+#      * [4] ???? ????  (c0ac 0122 | c0ac 0f83 | c970 01d7 | fa03 0000 ) -- OS version that was used during conversion?
+#      * [6] 0000 001c 00XX // XX file specific, same bytes as for the last char of the first 16 bytes (see 0.a), and its repetition
+# * 3. [2] Count : 0007? vs 0003 vs 0008 (number of entries 7+1, 3+1, 8+1), +1, since there is an additional 'drag' segment included
+# * 4. [8:4+4]xCount Table1Entry
+#      * [char4] DataType, 4 byte string, e.g. 'RTF ' 'utf8', 'ut16'
+#      * [4] purpose uknown
+# * 5. [12:2+2+4+2+2]xCount Table2Entry (type?/offset into data segment)
+#       * [2] type ? (0x100 | 0x80), 0x100 for normal data, 0x80 for drag segment
+#       * [2] '0xFFFF'
+#       * [4] offset ?2]xN (last short is some kind of counter)
+#       * [2] 0x005d ?
+#       * [2] Some kind of counter
+
+import sys
+from struct import *
+import os.path
+
+resourcePath = sys.argv[1] + "/..namedfork/rsrc"
+fo = open(resourcePath, "rb")
+
+firstLine = fo.read(16)
+
+dataStart, descStart, descOffset, _ = unpack('>llll', firstLine)
+
+if dataStart != 0x100:
+    print("Assumption failed: First int in file marks starting of data (usually 0x100). Please verify.")
+    sys.exit(-1)
+
+fo.seek(descStart)
+
+# 1. Skip line
+firstLineRep = fo.read(16)
+
+if firstLine != firstLineRep:
+    print("Error: file format unexpected")
+    sys.exit(-1)
+
+# 2. Skip Unknown
+fo.seek(12, 1)
+
+# 3. Read Count
+count = unpack('>H', fo.read(2))[0] + 1
+
+#entry = iter_unpack('4s4x', fo.read(8*count))
+
+descEntries = []
+
+# 4. Read Table1Entries
+for x in range(0, count):
+    entry = unpack('4s4x', fo.read(8))
+    descEntries.append(entry[0])
+
+# 5. Read Table2 Entries
+for x in range(0, count):
+    entry = unpack('>H2xIHH', fo.read(12))
+    offset = entry[1]
+    descEntries[x] = (x, descEntries[x], offset) #overwrite entry with tuple
+
+# Print Data
+
+data = {}
+for x in range(0, count):
+    i, name, offset = descEntries[x]
+
+    if name == 'drag':
+        continue
+
+    print("\n%d '%s' (%d)" % descEntries[x])
+    fo.seek(dataStart + offset)
+    dataLen = unpack('>l', fo.read(4))[0]
+    d = fo.read(dataLen)
+    data[name] = d
+    #print(d)
+
+
+fileEndings = {
+        'RTF ' : ".rtf",
+        'utf8' : ".txt",
+        'TEXT' : ".txt",
+        'weba' : ".webarchive",
+        #'weba' : ".html",
+        }
+
+preferredTypes = [ 'RTF ', 'utf8', 'weba' ]
+fallBackDataType = 'TEXT'
+
+fallbackNeeded = True
+for dataType in preferredTypes:
+    if dataType in data:
+        path = sys.argv[1] + '.resextract' + fileEndings[dataType]
+        if os.path.exists(path):
+            print("Cannot write %s to %s : file exists" % (dataType, path))
+            sys.exit(-1)
+        with open(path, "wb") as f:
+            f.write(data[dataType])
+            fallbackNeeded = False
+del dataType
+
+if not fallbackNeeded:
+    sys.exit(0)
+elif fallBackDataType in data:
+    path = sys.argv[1] + '.resextract' + fileEndings[fallBackDataType]
+    if os.path.exists(path):
+        print("Cannot write %s to %s : file exists" % (fallBackDataType, path))
+        sys.exit(-1)
+    with open(path, "wb") as f:
+        f.write(data[fallBackDataType])
+    sys.exit(0)
+
+sys.exit(-1)
