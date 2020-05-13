@@ -28,17 +28,19 @@ in the resource fork of Apples HFS+ file system, so it cannot be easily
 accessed from the command line, and any migration of the data to another file
 system might end up with losing the data from these snippets.
 
-The solutions I found were _not applicable_,
+The solutions I found were _not applicable for my purpose_:
  * Using Apples `DeRez` to display the content of the resources, then use
    text-utilities (grep/sed) to extract the pure data.
+
    _Data contained characters that made the regex engine panic._
+
  * Use AppleScript to programmatically drop the files into text documents and
    store them.
+
    _I wanted to have all types of resources, including webarchives._
 
-Resource forks can be accessed using $file/..namedfork/rsrc
-I took this as an exercise to reverse engineer the file format of the resource forks and to toy around with python.
-
+I decided to take this as an exercise to reverse engineer the file format of
+the resource forks and to toy around with python.
 
 ## Technical background
 
