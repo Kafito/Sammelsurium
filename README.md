@@ -12,7 +12,14 @@ deferred terminal connections via built-in facilities.
 An experiment to implement fuzzy matching logic with regular expressions
 motivated by the need to have access to my keepass password database from the
 command line (without a GUI).
+
 [More info / files](fuzzykeepass.d)
+
+## RealStaticPicoCMS
+A script that helps to avoid the "dynamically serving static files" approach of
+of [Pico](http://github.com/picocms/Pico.git).
+
+[More info / files](realstaticpicocms.d)
 
 ## textClipExtract
 A python script to resource different resources such as plain text, rtf or webarchives from Mac OS [textClippings](https://en.wikipedia.org/wiki/TextClipping).
