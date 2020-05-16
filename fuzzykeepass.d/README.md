@@ -55,6 +55,7 @@ This simple scheme worked well enough for me, and this tool has been my regular
 driver for accessing my passwords in headless scenarios since then.
 
 > *NOTE*
+>
 > This tool was implemented in early 2018, the situation around tooling may have changed since then.
 
 ## Credits
