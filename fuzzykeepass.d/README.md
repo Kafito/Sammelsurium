@@ -43,7 +43,7 @@ that allowed for the combination of
 So I took this as an opportunity for exploration and implement a fuzzy matching
 logic.
 
-The common way to implement this is to use the [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance), but I stumbled over a [regex based implementation](https://j11y.io/javascript/fuzzy-scoring-regex-mayhem/). However, I did not like the fact that a RegEx needed to be build up for each entry in my database, which sounded a bit to excessive.
+The common way to implement this is to use the [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance), but I stumbled over a [regex based implementation](https://j11y.io/javascript/fuzzy-scoring-regex-mayhem/) that sounded very interesting. However, I did not like the fact that a RegEx needed to be build up for each entry in my database, which seemed to be a bit to excessive.
 
 I found a way to invert the matching logic, such that the RegEx is now build
 for the search string, and all entries are matched against the search string
