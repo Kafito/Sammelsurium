@@ -11,6 +11,7 @@ command-line.
 ## Usage
 ```
     $ ./paranoialauncher [path/to/db]
+    ... or ...
     $ python main.py path/to/db
 ```
 
