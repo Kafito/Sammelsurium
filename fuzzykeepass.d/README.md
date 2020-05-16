@@ -4,14 +4,14 @@ motivated by the need to have access to my keepass password database from the
 command-line.
 
 ## Features
- * (Reg-Ex powered) Fuzzy matching of entries in a keepass database.
+ * (RegEx powered) Fuzzy matching of entries in a keepass database.
  * A `paranoialauncher`, which disables networking for the python instance by
    unsharing kernel namespaces.
 
 ## Usage
 ```
     $ ./paranoialauncher [path/to/db]
-    ... or ...
+         or ...
     $ python main.py path/to/db
 ```
 
@@ -43,18 +43,16 @@ that allowed for the combination of
 So I took this as an opportunity for exploration and implement a fuzzy matching
 logic.
 
-The common way to implement this is to use the [Levenshtein Distance](
-https://en.wikipedia.org/wiki/Levenshtein_distance), but I stumbled over a [regex based implementation]
-(https://j11y.io/javascript/fuzzy-scoring-regex-mayhem/). However, I did not like the fact that a RegEx needed to be build up for each entry in my database, which sounded a bit to excessive.
+The common way to implement this is to use the [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance), but I stumbled over a [regex based implementation](https://j11y.io/javascript/fuzzy-scoring-regex-mayhem/). However, I did not like the fact that a RegEx needed to be build up for each entry in my database, which sounded a bit to excessive.
 
-I found a way to invert the matching logic, such that the regex is now build
+I found a way to invert the matching logic, such that the RegEx is now build
 for the search string, and all entries are matched against the search string
 instead.
 
 This simple scheme worked well enough for me, and this tool has been my regular
 driver for accessing my passwords in headless scenarios since then.
 
-> *NOTE*
+> **NOTE**
 >
 > This tool was implemented in early 2018, the situation around tooling may have changed since then.
 
